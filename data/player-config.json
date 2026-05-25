@@ -1,0 +1,36 @@
+{
+  "version": 5,
+  "activeTab": "info",
+  "theme": {
+    "tokens": {
+      "brand": "#fbba00",
+      "brandDark": "#ce0670",
+      "brandDarkest": "#501f13",
+      "brandLightest": "#fff4e4",
+      "shadeDark": "#9d5e4e",
+      "shadeBase": "#b07a6a",
+      "contrast": "#501f13",
+      "alt": "#ffffff"
+    },
+    "fonts": {
+      "ci": {
+        "name": "Jost",
+        "family": ["Jost", "Calibri", "Arial", "Helvetica", "sans-serif"],
+        "weight": 700,
+        "src": ["https://fonts.gstatic.com/s/jost/v20/92zPtBhPNqw79Ij1E865zBUv7mxEIgVG.ttf"]
+      },
+      "regular": {
+        "name": "Jost",
+        "family": ["Jost", "Calibri", "Arial", "Helvetica", "sans-serif"],
+        "weight": 400,
+        "src": ["https://fonts.gstatic.com/s/jost/v20/92zPtBhPNqw79Ij1E865zBUv7myjJQVG.ttf"]
+      },
+      "bold": {
+        "name": "Jost",
+        "family": ["Jost", "Calibri", "Arial", "Helvetica", "sans-serif"],
+        "weight": 700,
+        "src": ["https://fonts.gstatic.com/s/jost/v20/92zPtBhPNqw79Ij1E865zBUv7mxEIgVG.ttf"]
+      }
+    }
+  }
+}

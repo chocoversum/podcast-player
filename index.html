@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#501f13" />
+    <title>Podcast player</title>
+    <!-- Chocoversum style guide: Jost for web (Google Fonts). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="show-header">
+        <h1 id="show-title">Loading…</h1>
+        <p id="show-subtitle"></p>
+      </header>
+
+      <!-- Podlove mounts an iframe here; data-variant picks a responsive layout (m = medium). -->
+      <div class="player-wrap">
+        <div id="player-root" data-variant="m"></div>
+      </div>
+
+      <div class="toolbar">
+        <label for="playback-rate">Speed</label>
+        <select id="playback-rate" aria-label="Playback speed">
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option>
+          <option value="1.75">1.75×</option>
+          <option value="2">2×</option>
+        </select>
+      </div>
+
+      <div id="load-error" class="error-banner" hidden></div>
+
+      <article class="shownotes" id="shownotes-panel" hidden>
+        <h2>Episode notes</h2>
+        <div class="body" id="shownotes-body"></div>
+      </article>
+
+      <section class="episodes-section" aria-labelledby="episodes-heading">
+        <h2 id="episodes-heading">Episodes</h2>
+        <ol class="episode-list" id="episode-list"></ol>
+      </section>
+    </div>
+
+    <!-- Official Podlove Web Player 5 embed (global: podlovePlayer). -->
+    <script src="https://cdn.podlove.org/web-player/5.x/embed.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
