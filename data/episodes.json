@@ -18,6 +18,18 @@
       "audioUrl": "audio/podcast-marke-im-chocoversum.wav",
       "mimeType": "audio/wav",
       "audioTitle": "WAV"
+    },
+    {
+      "title": "Podcast 2",
+      "subtitle": "WAV",
+      "summary": "<p>Wuff</p>",
+      "publicationDate": "2026-04-12T12:00:00+00:00",
+      "duration": "00:45:00",
+      "poster": "",
+      "link": "",
+      "audioUrl": ""audio/intro_folge_1.wav"",
+      "mimeType": "audio/wav",
+      "audioTitle": "WAV"
     }
   ]
 }
