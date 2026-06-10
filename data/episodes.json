@@ -30,6 +30,18 @@
       "audioUrl": "audio/intro_folge_1.wav",
       "mimeType": "audio/wav",
       "audioTitle": "WAV"
+    },
+    {
+      "title": "Bessere Arbeitsbedingungen",
+      "subtitle": "Original Beans, Tony's & Fairafric",
+      "summary": "<p>Wuff</p>",
+      "publicationDate": "2026-04-12T12:00:00+00:00",
+      "duration": "00:45:00",
+      "poster": "",
+      "link": "",
+      "audioUrl": "audio/bessere_arbeitsbedingungen_tonys_ original_beans_fairafric.mp3",
+      "mimeType": "audio/mp3",
+      "audioTitle": "MP3"
     }
   ]
 }
