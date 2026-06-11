@@ -20,11 +20,11 @@
       "audioTitle": "WAV"
     },
     {
-      "title": "Podcast 2",
-      "subtitle": "WAV",
-      "summary": "<p>Wuff</p>",
+      "title": "Intro Folge",
+      "subtitle": "Wir machen jetzt Podcast! Warum und woher kam diese Idee?",
+      "summary": "<p>Clara und Vivi erzählen wie es zu dieser Idee kam und was Hörer:innen erwarten können.</p>",
       "publicationDate": "2026-04-12T12:00:00+00:00",
-      "duration": "00:45:00",
+      "duration": "00:12:23",
       "poster": "",
       "link": "",
       "audioUrl": "audio/intro_folge_1.wav",
