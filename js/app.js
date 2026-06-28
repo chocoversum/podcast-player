@@ -134,7 +134,7 @@ function renderMenu() {
 
 /* --------------------------------------------------------- Player-Seite */
 
-function openEpisode(index) {
+function openEpisode(index, push = true) {
   const ep = episodes[index];
   if (!ep) return;
   currentIndex = index;
@@ -156,6 +156,9 @@ function openEpisode(index) {
   audio.load();
 
   showPlayerView();
+
+  // Verlaufseintrag, damit der Browser-Zurück-Button zur Übersicht führt.
+  if (push) history.pushState({ view: "player", index }, "");
 
   audio.play().catch(() => {
     /* Autoplay kann blockiert sein – Nutzer:in tippt dann auf Play. */
@@ -204,7 +207,22 @@ function seekFromSlider() {
 
 function wireEvents() {
   setPlayIcon(false);
-  el("home-button").addEventListener("click", showMenu);
+
+  // Homebutton nutzt den Verlauf, damit Vor/Zurück im Browser konsistent bleibt.
+  el("home-button").addEventListener("click", () => {
+    if (history.state && history.state.view === "player") history.back();
+    else showMenu();
+  });
+
+  // Browser-Zurück/-Vor: zwischen Übersicht und Player umschalten.
+  window.addEventListener("popstate", (e) => {
+    const st = e.state;
+    if (st && st.view === "player" && typeof st.index === "number") {
+      openEpisode(st.index, false);
+    } else {
+      showMenu();
+    }
+  });
   el("play-pause").addEventListener("click", togglePlay);
   el("back-15").addEventListener("click", () => skip(-SKIP_BACK));
   el("fwd-30").addEventListener("click", () => skip(SKIP_FWD));

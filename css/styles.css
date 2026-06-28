@@ -279,17 +279,13 @@ body {
   aspect-ratio: 1 / 1;
   object-fit: cover;
   margin: 1.5rem auto 1.25rem;
-  border-radius: 1.5rem;
-  background: var(--surface);
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 0 rgba(251, 186, 0, 0.55), 0 20px 50px rgba(157, 94, 78, 0.22),
-    0 12px 36px rgba(206, 6, 112, 0.12);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 44px rgba(157, 94, 78, 0.28);
 }
 
 @media (prefers-color-scheme: dark) {
   .player-cover {
-    border-color: rgba(255, 228, 196, 0.2);
-    box-shadow: 0 6px 0 rgba(215, 226, 0, 0.4), 0 22px 56px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   }
 }
 
