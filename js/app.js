@@ -163,8 +163,9 @@ function openEpisode(index) {
 }
 
 function setPlayIcon(isPlaying) {
-  el("icon-play").hidden = isPlaying;
-  el("icon-pause").hidden = !isPlaying;
+  // Inline-Style statt [hidden]: zuverlässig, egal welche SVG-Defaultregeln greifen.
+  el("icon-play").style.display = isPlaying ? "none" : "block";
+  el("icon-pause").style.display = isPlaying ? "block" : "none";
   el("play-pause").setAttribute("aria-label", isPlaying ? "Pause" : "Abspielen");
 }
 
@@ -202,6 +203,7 @@ function seekFromSlider() {
 /* --------------------------------------------------------------- Setup */
 
 function wireEvents() {
+  setPlayIcon(false);
   el("home-button").addEventListener("click", showMenu);
   el("play-pause").addEventListener("click", togglePlay);
   el("back-15").addEventListener("click", () => skip(-SKIP_BACK));

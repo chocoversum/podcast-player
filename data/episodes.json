@@ -1,9 +1,9 @@
 {
   "show": {
-    "title": "Chocoversum",
-    "subtitle": "Der Podcast",
+    "title": "Ein biss chen",
+    "subtitle": "Der Podcast mit Clara",
     "summary": "Ein privater Podcast-Player für das Chocoversum.",
-    "poster": "assets/cover.svg",
+    "poster": "images/cover.jpg",
     "link": ""
   },
   "episodes": [
@@ -13,7 +13,7 @@
       "summary": "<p>Clara und Vivi erzählen, wie es zu dieser Idee kam und was Hörer:innen erwarten können.</p>",
       "publicationDate": "2026-04-12T12:00:00+00:00",
       "duration": "00:12:23",
-      "poster": "assets/cover.svg",
+      "poster": "images/cover.jpg",
       "link": "",
       "audioUrl": "audio/intro_folge_1.wav",
       "mimeType": "audio/wav",
@@ -25,7 +25,7 @@
       "summary": "<p>Wie sehen faire Arbeitsbedingungen im Kakaoanbau aus? Wir schauen auf Original Beans, Tony's Chocolonely und Fairafric.</p>",
       "publicationDate": "2026-04-26T12:00:00+00:00",
       "duration": "00:40:00",
-      "poster": "assets/cover.svg",
+      "poster": "images/cover.jpg",
       "link": "",
       "audioUrl": "audio/bessere_arbeitsbedingungen_tonys_ original_beans_fairafric.mp3",
       "mimeType": "audio/mp3",
