@@ -446,22 +446,20 @@ body {
 }
 
 .ctrl--skip svg {
-  width: 1.7rem;
-  height: 1.7rem;
-  fill: var(--choco-sugar-blue);
+  width: 2rem;
+  height: 2rem;
 }
 
-.ctrl__num {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: var(--choco-sugar-blue);
-  padding-top: 0.32rem;
-  pointer-events: none;
+.ctrl--skip .skip-arrow {
+  stroke: var(--choco-sugar-blue);
+}
+
+.ctrl--skip .skip-num {
+  fill: var(--choco-sugar-blue);
+  font-family: "Jost", sans-serif;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
 
 .ctrl--play {
