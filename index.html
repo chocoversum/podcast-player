@@ -1,58 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#501f13" />
-    <title>Podcast player</title>
+    <title>Chocoversum Podcast</title>
     <!-- Chocoversum style guide: Jost for web (Google Fonts). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body>
-    <div class="page">
+    <!-- Single audio element reused across episodes. -->
+    <audio id="audio" preload="metadata"></audio>
+
+    <div id="load-error" class="error-banner" hidden></div>
+
+    <!-- ===================== MENÜSEITE ===================== -->
+    <main id="menu-view" class="view page">
       <header class="show-header">
-        <h1 id="show-title">Loading…</h1>
-        <p id="show-subtitle"></p>
+        <img id="show-cover" class="show-cover" alt="" />
+        <div class="show-header__text">
+          <h1 id="show-title">Lädt…</h1>
+          <p id="show-subtitle"></p>
+        </div>
       </header>
 
-      <!-- Podlove mounts an iframe here; data-variant picks a responsive layout (m = medium). -->
-      <div class="player-wrap">
-        <div id="player-root" data-variant="m"></div>
+      <section class="episodes-section" aria-labelledby="episodes-heading">
+        <h2 id="episodes-heading">Folgen</h2>
+        <ol class="episode-list" id="episode-list"></ol>
+      </section>
+    </main>
+
+    <!-- ===================== PLAYER-SEITE ===================== -->
+    <main id="player-view" class="view page" hidden>
+      <!-- Homebutton: zurück zur Menüseite -->
+      <button id="home-button" class="home-button" type="button" aria-label="Zurück zur Übersicht">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 3 2.5 11.5a1 1 0 0 0 .66 1.75H5V20a1 1 0 0 0 1 1h3.5v-5h5v5H18a1 1 0 0 0 1-1v-6.75h1.84a1 1 0 0 0 .66-1.75L12 3Z" />
+        </svg>
+        <span>Übersicht</span>
+      </button>
+
+      <!-- Cover Foto -->
+      <img id="player-cover" class="player-cover" alt="" />
+
+      <!-- Folgenname -->
+      <h1 id="player-title" class="player-title">Folgenname</h1>
+
+      <!-- Hochladedatum -->
+      <p id="player-date" class="player-date"></p>
+
+      <!-- Spalte für ein bisschen Text -->
+      <div id="player-text" class="player-text"></div>
+
+      <!-- Balken, der die Länge anzeigt -->
+      <div class="progress">
+        <input
+          id="seek"
+          class="seek"
+          type="range"
+          min="0"
+          max="1000"
+          value="0"
+          step="1"
+          aria-label="Wiedergabeposition"
+        />
+        <div class="progress__time">
+          <span id="time-current">00:00</span>
+          <span id="time-total">00:00</span>
+        </div>
+      </div>
+
+      <!-- Steuerung: 15s zurück · Play/Pause · 30s vor -->
+      <div class="controls">
+        <button id="back-15" class="ctrl ctrl--skip" type="button" aria-label="15 Sekunden zurück">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7Z" />
+          </svg>
+          <span class="ctrl__num">15</span>
+        </button>
+
+        <button id="play-pause" class="ctrl ctrl--play" type="button" aria-label="Abspielen">
+          <svg id="icon-play" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" aria-hidden="true" focusable="false" hidden>
+            <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
+          </svg>
+        </button>
+
+        <button id="fwd-30" class="ctrl ctrl--skip" type="button" aria-label="30 Sekunden vor">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5V2l5 4-5 4V7a5 5 0 1 0 5 5h2a7 7 0 1 1-7-7Z" />
+          </svg>
+          <span class="ctrl__num">30</span>
+        </button>
       </div>
 
       <div class="toolbar">
-        <label for="playback-rate">Speed</label>
-        <select id="playback-rate" aria-label="Playback speed">
-          <option value="0.75">0.75×</option>
+        <label for="playback-rate">Tempo</label>
+        <select id="playback-rate" aria-label="Wiedergabegeschwindigkeit">
+          <option value="0.75">0,75×</option>
           <option value="1" selected>1×</option>
-          <option value="1.25">1.25×</option>
-          <option value="1.5">1.5×</option>
-          <option value="1.75">1.75×</option>
+          <option value="1.25">1,25×</option>
+          <option value="1.5">1,5×</option>
+          <option value="1.75">1,75×</option>
           <option value="2">2×</option>
         </select>
       </div>
+    </main>
 
-      <div id="load-error" class="error-banner" hidden></div>
-
-      <article class="shownotes" id="shownotes-panel" hidden>
-        <h2>Episode notes</h2>
-        <div class="body" id="shownotes-body"></div>
-      </article>
-
-      <section class="episodes-section" aria-labelledby="episodes-heading">
-        <h2 id="episodes-heading">Episodes</h2>
-        <ol class="episode-list" id="episode-list"></ol>
-      </section>
-    </div>
-
-    <!-- Official Podlove Web Player 5 embed (global: podlovePlayer). -->
-    <script src="https://cdn.podlove.org/web-player/5.x/embed.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

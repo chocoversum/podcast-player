@@ -1,193 +1,278 @@
 /**
- * Loads `data/episodes.json` + `data/player-config.json`, builds Podlove episode payloads,
- * embeds the player once, then swaps episodes by remounting (clears prior iframe).
+ * Chocoversum Podcast – schlanker, eigener Audio-Player ohne Fremd-Embed.
+ *
+ * Umsetzt Claras Wunschliste:
+ *   - Cover Foto, Hochladedatum, Folgenname, Textspalte
+ *   - Fortschrittsbalken (zeigt die Länge)
+ *   - gemeinsamer Play-/Pause-Knopf
+ *   - 15 Sekunden zurück, 30 Sekunden vor
+ *   - Homebutton zurück zur Menüseite
  */
 
 const EPISODES_URL = "data/episodes.json";
-const PLAYER_CONFIG_URL = "data/player-config.json";
+const SKIP_BACK = 15; // Sekunden
+const SKIP_FWD = 30; // Sekunden
+const FALLBACK_COVER = "assets/cover.svg";
 
-/** @type {PodloveStore | null} Redux store returned by podlovePlayer(). */
-let playerStore = null;
+/** @type {object[]} */
+let episodes = [];
+/** @type {object} */
+let show = {};
+/** @type {number} */
+let currentIndex = -1;
 
-/** @typedef {{ dispatch: (a: { type: string; payload?: unknown }) => void }} PodloveStore */
+const el = (id) => document.getElementById(id);
 
-/**
- * Normalizes duration to "hh:mm:ss" or "hh:mm:ss.mmm" as used by Podlove.
- * @param {string} raw
- */
-function normalizeDuration(raw) {
-  const t = raw.trim();
-  const parts = t.split(":").map((p) => p.trim());
-  if (parts.length === 1) {
-    const sec = parseFloat(parts[0], 10);
-    if (!Number.isFinite(sec)) return "00:00:00";
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = Math.floor(sec % 60);
-    return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
-  }
-  if (parts.length === 2) {
-    return `00:${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
-  }
-  if (parts.length === 3) {
-    return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}:${parts[2].padStart(2, "0")}`;
-  }
-  return "00:00:00";
+const audio = el("audio");
+
+/* ---------------------------------------------------------------- Hilfen */
+
+/** Sekunden -> "mm:ss" oder "h:mm:ss". */
+function formatTime(totalSeconds) {
+  if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "00:00";
+  const s = Math.floor(totalSeconds % 60);
+  const m = Math.floor((totalSeconds / 60) % 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const pad = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
 }
 
-/** Best-effort MIME type from file extension when `mimeType` is omitted in JSON. */
-function guessMimeType(audioUrl, explicit) {
-  if (explicit) return explicit;
-  const path = (audioUrl || "").split("?")[0].toLowerCase();
-  if (path.endsWith(".wav")) return "audio/wav";
-  if (path.endsWith(".ogg") || path.endsWith(".oga")) return "audio/ogg";
-  if (path.endsWith(".m4a") || path.endsWith(".mp4") || path.endsWith(".aac")) return "audio/mp4";
-  return "audio/mpeg";
+/** "hh:mm:ss" / "mm:ss" / Sekunden -> Sekunden (Zahl). */
+function durationToSeconds(raw) {
+  if (raw == null) return 0;
+  const t = String(raw).trim();
+  if (!t) return 0;
+  const parts = t.split(":").map((p) => parseFloat(p));
+  if (parts.some((n) => !Number.isFinite(n))) return 0;
+  if (parts.length === 1) return parts[0];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  return parts[0] * 3600 + parts[1] * 60 + parts[2];
 }
 
-/**
- * Maps our simplified JSON episode to a Podlove Web Player 5 episode object.
- * @param {object} show
- * @param {object} ep
- */
-function toPodloveEpisode(show, ep) {
-  return {
-    version: 5,
-    show: {
-      title: show.title || "",
-      subtitle: show.subtitle || "",
-      summary: show.summary || "",
-      poster: show.poster || "",
-      link: show.link || "",
-    },
-    title: ep.title || "Untitled",
-    subtitle: ep.subtitle || "",
-    summary: ep.summary || "",
-    publicationDate: ep.publicationDate || new Date().toISOString(),
-    duration: normalizeDuration(ep.duration || "00:00:00"),
-    poster: ep.poster || "",
-    link: ep.link || "",
-    audio: [
-      {
-        url: ep.audioUrl,
-        size: ep.size != null ? String(ep.size) : "0",
-        title: ep.audioTitle || "Audio",
-        mimeType: guessMimeType(ep.audioUrl, ep.mimeType),
-      },
-    ],
-  };
+/** ISO-Datum -> "12. April 2026". Fällt auf den Rohwert zurück. */
+function formatDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 }
 
-function applyPlaybackRate(store) {
-  const sel = document.getElementById("playback-rate");
-  const rate = parseFloat(sel.value, 10);
-  if (!store || !Number.isFinite(rate)) return;
-  // Podlove store action from @podlove/player-actions (playback speed).
-  store.dispatch({ type: "PLAYER_SET_RATE", payload: rate });
+/** Entfernt HTML-Tags für Kurztexte in der Liste. */
+function stripHtml(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  return (tmp.textContent || "").trim();
 }
 
-/**
- * Destroys any iframe inside the mount node and creates a fresh player instance.
- * @param {HTMLElement} mount
- * @param {object} episodePayload
- * @param {object} playerConfig
- * @returns {Promise<PodloveStore>}
- */
-async function embedPlayer(mount, episodePayload, playerConfig) {
-  mount.innerHTML = "";
-  if (typeof window.podlovePlayer !== "function") {
-    throw new Error("podlovePlayer is not available. Check the CDN script.");
-  }
-  const store = await window.podlovePlayer(mount, episodePayload, playerConfig);
-  applyPlaybackRate(store);
-  return store;
+function posterFor(ep) {
+  return ep.poster || show.poster || FALLBACK_COVER;
 }
 
-function setActiveEpisode(index) {
-  document.querySelectorAll(".episode-list button").forEach((btn, i) => {
-    btn.classList.toggle("is-active", i === index);
-    btn.setAttribute("aria-current", i === index ? "true" : "false");
+/* ----------------------------------------------------------- Ansichten */
+
+function showMenu() {
+  el("player-view").hidden = true;
+  el("menu-view").hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function showPlayerView() {
+  el("menu-view").hidden = true;
+  el("player-view").hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ----------------------------------------------------------- Menüseite */
+
+function renderMenu() {
+  el("show-title").textContent = show.title || "Podcast";
+  el("show-subtitle").textContent = show.subtitle || "";
+
+  const cover = el("show-cover");
+  cover.src = show.poster || FALLBACK_COVER;
+  cover.alt = show.title ? `Cover: ${show.title}` : "Podcast-Cover";
+
+  const list = el("episode-list");
+  list.innerHTML = "";
+
+  episodes.forEach((ep, index) => {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "episode-row";
+
+    const img = document.createElement("img");
+    img.className = "episode-row__cover";
+    img.src = posterFor(ep);
+    img.alt = "";
+    img.loading = "lazy";
+
+    const info = document.createElement("div");
+    info.className = "episode-row__info";
+
+    const title = document.createElement("span");
+    title.className = "episode-row__title";
+    title.textContent = ep.title || `Folge ${index + 1}`;
+
+    const meta = document.createElement("span");
+    meta.className = "episode-row__meta";
+    const date = formatDate(ep.publicationDate);
+    const dur = formatTime(durationToSeconds(ep.duration));
+    meta.textContent = [date, dur].filter(Boolean).join(" · ");
+
+    const text = document.createElement("span");
+    text.className = "episode-row__text";
+    text.textContent = ep.subtitle || stripHtml(ep.summary);
+
+    info.append(title, meta, text);
+    btn.append(img, info);
+    btn.addEventListener("click", () => openEpisode(index));
+    li.appendChild(btn);
+    list.appendChild(li);
   });
 }
 
-function renderShownotes(html) {
-  const panel = document.getElementById("shownotes-panel");
-  const body = document.getElementById("shownotes-body");
-  if (!html || !html.trim()) {
-    panel.hidden = true;
-    body.innerHTML = "";
-    return;
-  }
-  panel.hidden = false;
-  // JSON is maintained by you; treat summary as trusted HTML for rich shownotes.
-  body.innerHTML = html;
+/* --------------------------------------------------------- Player-Seite */
+
+function openEpisode(index) {
+  const ep = episodes[index];
+  if (!ep) return;
+  currentIndex = index;
+
+  el("player-cover").src = posterFor(ep);
+  el("player-cover").alt = ep.title ? `Cover: ${ep.title}` : "Cover";
+  el("player-title").textContent = ep.title || `Folge ${index + 1}`;
+  el("player-date").textContent = formatDate(ep.publicationDate);
+  el("player-text").innerHTML = ep.summary || (ep.subtitle ? `<p>${ep.subtitle}</p>` : "");
+
+  // Dauer schon vor dem Laden anzeigen (aus JSON), bis Metadaten da sind.
+  const jsonDur = durationToSeconds(ep.duration);
+  el("time-total").textContent = formatTime(jsonDur);
+  el("time-current").textContent = "00:00";
+  el("seek").value = "0";
+
+  audio.src = ep.audioUrl || "";
+  audio.playbackRate = parseFloat(el("playback-rate").value) || 1;
+  audio.load();
+
+  showPlayerView();
+
+  audio.play().catch(() => {
+    /* Autoplay kann blockiert sein – Nutzer:in tippt dann auf Play. */
+  });
 }
 
-function formatDurationLabel(isoish) {
-  return normalizeDuration(isoish);
+function setPlayIcon(isPlaying) {
+  el("icon-play").hidden = isPlaying;
+  el("icon-pause").hidden = !isPlaying;
+  el("play-pause").setAttribute("aria-label", isPlaying ? "Pause" : "Abspielen");
+}
+
+function togglePlay() {
+  if (!audio.src) return;
+  if (audio.paused) audio.play().catch(() => {});
+  else audio.pause();
+}
+
+function skip(seconds) {
+  if (!Number.isFinite(audio.duration)) {
+    audio.currentTime = Math.max(0, audio.currentTime + seconds);
+    return;
+  }
+  audio.currentTime = Math.min(audio.duration, Math.max(0, audio.currentTime + seconds));
+}
+
+function updateProgress() {
+  const dur = audio.duration;
+  const cur = audio.currentTime;
+  el("time-current").textContent = formatTime(cur);
+  if (Number.isFinite(dur) && dur > 0) {
+    el("time-total").textContent = formatTime(dur);
+    el("seek").value = String(Math.round((cur / dur) * 1000));
+  }
+}
+
+function seekFromSlider() {
+  const dur = audio.duration;
+  if (!Number.isFinite(dur) || dur <= 0) return;
+  const ratio = parseInt(el("seek").value, 10) / 1000;
+  audio.currentTime = ratio * dur;
+}
+
+/* --------------------------------------------------------------- Setup */
+
+function wireEvents() {
+  el("home-button").addEventListener("click", showMenu);
+  el("play-pause").addEventListener("click", togglePlay);
+  el("back-15").addEventListener("click", () => skip(-SKIP_BACK));
+  el("fwd-30").addEventListener("click", () => skip(SKIP_FWD));
+  el("seek").addEventListener("input", seekFromSlider);
+
+  el("playback-rate").addEventListener("change", (e) => {
+    const rate = parseFloat(e.target.value);
+    if (Number.isFinite(rate)) audio.playbackRate = rate;
+  });
+
+  audio.addEventListener("play", () => setPlayIcon(true));
+  audio.addEventListener("pause", () => setPlayIcon(false));
+  audio.addEventListener("timeupdate", updateProgress);
+  audio.addEventListener("loadedmetadata", updateProgress);
+  audio.addEventListener("ended", () => setPlayIcon(false));
+
+  // Cover-Bilder, die nicht laden, auf das Platzhalter-Cover zurücksetzen.
+  document.addEventListener(
+    "error",
+    (e) => {
+      const t = e.target;
+      if (t instanceof HTMLImageElement && t.src && !t.src.endsWith(FALLBACK_COVER)) {
+        t.src = FALLBACK_COVER;
+      }
+    },
+    true
+  );
+
+  // Tastatur: Leertaste = Play/Pause, Pfeile = spulen (nur in Player-Ansicht).
+  document.addEventListener("keydown", (e) => {
+    if (el("player-view").hidden) return;
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "SELECT" || tag === "INPUT") return;
+    if (e.code === "Space") {
+      e.preventDefault();
+      togglePlay();
+    } else if (e.code === "ArrowLeft") {
+      e.preventDefault();
+      skip(-SKIP_BACK);
+    } else if (e.code === "ArrowRight") {
+      e.preventDefault();
+      skip(SKIP_FWD);
+    }
+  });
 }
 
 async function main() {
-  const errEl = document.getElementById("load-error");
-  const mount = document.getElementById("player-root");
-  const listEl = document.getElementById("episode-list");
+  const errEl = el("load-error");
+  wireEvents();
 
   try {
-    const [epRes, cfgRes] = await Promise.all([fetch(EPISODES_URL), fetch(PLAYER_CONFIG_URL)]);
-    if (!epRes.ok) throw new Error(`Could not load ${EPISODES_URL} (${epRes.status})`);
-    if (!cfgRes.ok) throw new Error(`Could not load ${PLAYER_CONFIG_URL} (${cfgRes.status})`);
+    const res = await fetch(EPISODES_URL);
+    if (!res.ok) throw new Error(`${EPISODES_URL} konnte nicht geladen werden (${res.status}).`);
+    const catalog = await res.json();
 
-    const catalog = await epRes.json();
-    const playerConfig = await cfgRes.json();
+    show = catalog.show || {};
+    episodes = Array.isArray(catalog.episodes) ? catalog.episodes : [];
 
-    const show = catalog.show || {};
-    const episodes = Array.isArray(catalog.episodes) ? catalog.episodes : [];
-
-    document.getElementById("show-title").textContent = show.title || "Podcast";
-    document.getElementById("show-subtitle").textContent = show.subtitle || "";
+    renderMenu();
 
     if (!episodes.length) {
       errEl.hidden = false;
-      errEl.textContent = "No episodes found in episodes.json.";
-      return;
+      errEl.textContent = "Keine Folgen in episodes.json gefunden.";
     }
-
-    // Build clickable episode rows (loads track into Podlove on click).
-    listEl.innerHTML = "";
-    episodes.forEach((ep, index) => {
-      const li = document.createElement("li");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      const dur = formatDurationLabel(ep.duration || "00:00:00");
-      btn.innerHTML = `<span class="ep-title"></span><span class="ep-meta"></span>`;
-      btn.querySelector(".ep-title").textContent = ep.title || `Episode ${index + 1}`;
-      btn.querySelector(".ep-meta").textContent = `${dur}${ep.subtitle ? ` · ${ep.subtitle}` : ""}`;
-      btn.addEventListener("click", async () => {
-        const payload = toPodloveEpisode(show, ep);
-        playerStore = await embedPlayer(mount, payload, playerConfig);
-        setActiveEpisode(index);
-        renderShownotes(ep.summary || "");
-      });
-      li.appendChild(btn);
-      listEl.appendChild(li);
-    });
-
-    document.getElementById("playback-rate").addEventListener("change", () => {
-      applyPlaybackRate(playerStore);
-    });
-
-    // First episode on load
-    const first = episodes[0];
-    const firstPayload = toPodloveEpisode(show, first);
-    playerStore = await embedPlayer(mount, firstPayload, playerConfig);
-    setActiveEpisode(0);
-    renderShownotes(first.summary || "");
   } catch (e) {
     console.error(e);
     errEl.hidden = false;
     errEl.textContent =
       e.message ||
-      "Failed to load. If you opened this file directly, use a local web server so fetch() can read JSON.";
+      "Laden fehlgeschlagen. Beim direkten Öffnen der Datei bitte einen lokalen Webserver nutzen, damit fetch() das JSON lesen kann.";
   }
 }
 
