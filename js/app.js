@@ -68,6 +68,28 @@ function posterFor(ep) {
   return ep.poster || show.poster || FALLBACK_COVER;
 }
 
+/** Optional: Play-Start an GoatCounter melden (kein Fehler, wenn Script fehlt). */
+function trackPlay(ep, attempt = 0) {
+  try {
+    if (typeof window.goatcounter?.count !== "function") {
+      if (attempt < 3) setTimeout(() => trackPlay(ep, attempt + 1), 800);
+      return;
+    }
+    const title = ep.title || "Episode";
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9äöüß]+/gi, "-")
+      .replace(/^-|-$/g, "");
+    window.goatcounter.count({
+      path: `play/${slug || "episode"}`,
+      title: `Play: ${title}`,
+      event: true,
+    });
+  } catch (_) {
+    /* Analytics darf den Player nie stören. */
+  }
+}
+
 /* ----------------------------------------------------------- Ansichten */
 
 function showMenu() {
@@ -159,6 +181,8 @@ function openEpisode(index, push = true) {
 
   // Verlaufseintrag, damit der Browser-Zurück-Button zur Übersicht führt.
   if (push) history.pushState({ view: "player", index }, "");
+
+  if (push) trackPlay(ep);
 
   audio.play().catch(() => {
     /* Autoplay kann blockiert sein – Nutzer:in tippt dann auf Play. */
