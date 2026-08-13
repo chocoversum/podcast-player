@@ -1,9 +1,9 @@
 {
   "show": {
-    "title": "Chocoversum",
-    "subtitle": "Podcast",
+    "title": "EIN BISS CHEN PODCAST",
+    "subtitle": "mit CLARA",
     "summary": "Ein privater Podcast-Player für das Chocoversum.",
-    "poster": "",
+    "poster": "images/cover.jpg",
     "link": ""
   },
   "episodes": [
@@ -13,11 +13,11 @@
       "summary": "<p>Clara und Vivi erzählen wie es zu dieser Idee kam und was Hörer:innen erwarten können. Sei gespannt. </p>",
       "publicationDate": "2026-04-12T12:00:00+00:00",
       "duration": "00:12:23",
-      "poster": "",
+      "poster": "images/cover.jpg",
       "link": "",
       "audioUrl": "audio/intro_folge_.wav",
       "mimeType": "audio/wav",
       "audioTitle": "WAV"
-    },
+    }
   ]
 }
