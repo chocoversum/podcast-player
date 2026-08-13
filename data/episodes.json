@@ -10,7 +10,7 @@
     {
       "title": "Intro Folge",
       "subtitle": "Wir machen jetzt Podcast! Warum und woher kam diese Idee?",
-      "summary": "<p>Clara und Vivi erzählen wie es zu dieser Idee kam und was Hörer:innen erwarten können. Sei gespannt. </p>",
+      "summary": "<p>Clara und Vivi erzählen, wie es zu dieser Idee kam und was Hörer:innen erwarten können.</p>",
       "publicationDate": "2026-04-12T12:00:00+00:00",
       "duration": "00:12:23",
       "poster": "images/cover.jpg",
@@ -18,6 +18,18 @@
       "audioUrl": "audio/intro_folge_.wav",
       "mimeType": "audio/wav",
       "audioTitle": "WAV"
+    },
+    {
+      "title": "Bessere Arbeitsbedingungen",
+      "subtitle": "Original Beans, Tony's & Fairafric",
+      "summary": "<p>Wie sehen faire Arbeitsbedingungen im Kakaoanbau aus? Wir schauen auf Original Beans, Tony's Chocolonely und Fairafric.</p>",
+      "publicationDate": "2026-04-26T12:00:00+00:00",
+      "duration": "00:40:00",
+      "poster": "images/cover.jpg",
+      "link": "",
+      "audioUrl": "audio/bessere_arbeitsbedingungen_tonys_ original_beans_fairafric.mp3",
+      "mimeType": "audio/mp3",
+      "audioTitle": "MP3"
     }
   ]
 }
