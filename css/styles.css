@@ -298,12 +298,24 @@ body {
 
 .player-date {
   text-align: center;
-  margin: 0 0 1.1rem;
+  margin: 0 0 0.35rem;
   font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--choco-wildberry);
+}
+
+.player-status {
+  text-align: center;
+  margin: 0 0 1.1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--choco-wildberry);
+}
+
+.player-status[hidden] {
+  display: none;
 }
 
 .player-text {

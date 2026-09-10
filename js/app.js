@@ -25,6 +25,50 @@ const el = (id) => document.getElementById(id);
 
 const audio = el("audio");
 
+function setBanner(message) {
+  const errEl = el("load-error");
+  if (!message) {
+    errEl.hidden = true;
+    errEl.textContent = "";
+    return;
+  }
+  errEl.hidden = false;
+  errEl.textContent = message;
+}
+
+function setPlayerStatus(message) {
+  const status = el("player-status");
+  if (!status) return;
+  if (!message) {
+    status.hidden = true;
+    status.textContent = "";
+    return;
+  }
+  status.hidden = false;
+  status.textContent = message;
+}
+
+function mediaErrorMessage() {
+  const code = audio.error && audio.error.code;
+  const src = audio.currentSrc || audio.src || "";
+  if (code === 2) return "Netzwerkfehler beim Laden der Audiodatei.";
+  if (code === 3) return "Die Audiodatei ist beschädigt oder das Format ist unbekannt.";
+  if (code === 4) {
+    return src
+      ? `Audiodatei nicht gefunden oder Format wird nicht unterstützt: ${src}`
+      : "Audiodatei nicht gefunden oder Format wird nicht unterstützt.";
+  }
+  return "Die Folge konnte nicht abgespielt werden.";
+}
+
+function audioUrlFor(ep) {
+  try {
+    return new URL(ep.audioUrl, document.baseURI).href;
+  } catch (_) {
+    return ep.audioUrl || "";
+  }
+}
+
 /* ---------------------------------------------------------------- Hilfen */
 
 /** Sekunden -> "mm:ss" oder "h:mm:ss". */
@@ -173,7 +217,18 @@ function openEpisode(index, push = true) {
   el("time-current").textContent = "00:00";
   el("seek").value = "0";
 
-  audio.src = ep.audioUrl || "";
+  setBanner("");
+  setPlayerStatus("Audio wird geladen …");
+
+  const url = audioUrlFor(ep);
+  audio.pause();
+  audio.removeAttribute("src");
+  while (audio.firstChild) audio.removeChild(audio.firstChild);
+  const source = document.createElement("source");
+  source.src = url;
+  source.type = ep.mimeType || "";
+  audio.appendChild(source);
+  audio.preload = "auto";
   audio.playbackRate = parseFloat(el("playback-rate").value) || 1;
   audio.load();
 
@@ -197,7 +252,7 @@ function setPlayIcon(isPlaying) {
 }
 
 function togglePlay() {
-  if (!audio.src) return;
+  if (!audio.currentSrc && !audio.querySelector("source[src]")) return;
   if (audio.paused) audio.play().catch(() => {});
   else audio.pause();
 }
@@ -262,6 +317,14 @@ function wireEvents() {
   audio.addEventListener("timeupdate", updateProgress);
   audio.addEventListener("loadedmetadata", updateProgress);
   audio.addEventListener("ended", () => setPlayIcon(false));
+  audio.addEventListener("waiting", () => setPlayerStatus("Audio wird geladen …"));
+  audio.addEventListener("stalled", () => setPlayerStatus("Audio wird geladen …"));
+  audio.addEventListener("playing", () => setPlayerStatus(""));
+  audio.addEventListener("canplay", () => setPlayerStatus(""));
+  audio.addEventListener("error", () => {
+    setPlayerStatus("");
+    setBanner(mediaErrorMessage());
+  });
 
   // Cover-Bilder, die nicht laden, auf das Platzhalter-Cover zurücksetzen.
   document.addEventListener(
@@ -294,11 +357,10 @@ function wireEvents() {
 }
 
 async function main() {
-  const errEl = el("load-error");
   wireEvents();
 
   try {
-    const res = await fetch(EPISODES_URL);
+    const res = await fetch(`${EPISODES_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`${EPISODES_URL} konnte nicht geladen werden (${res.status}).`);
     const catalog = await res.json();
 
@@ -308,15 +370,14 @@ async function main() {
     renderMenu();
 
     if (!episodes.length) {
-      errEl.hidden = false;
-      errEl.textContent = "Keine Folgen in episodes.json gefunden.";
+      setBanner("Keine Folgen in episodes.json gefunden.");
     }
   } catch (e) {
     console.error(e);
-    errEl.hidden = false;
-    errEl.textContent =
+    setBanner(
       e.message ||
-      "Laden fehlgeschlagen. Beim direkten Öffnen der Datei bitte einen lokalen Webserver nutzen, damit fetch() das JSON lesen kann.";
+        "Laden fehlgeschlagen. Beim direkten Öffnen der Datei bitte einen lokalen Webserver nutzen, damit fetch() das JSON lesen kann."
+    );
   }
 }
 

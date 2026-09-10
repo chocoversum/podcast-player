@@ -16,7 +16,7 @@
   </head>
   <body>
     <!-- Single audio element reused across episodes. -->
-    <audio id="audio" preload="metadata"></audio>
+    <audio id="audio" preload="auto" playsinline></audio>
 
     <div id="load-error" class="error-banner" hidden></div>
 
@@ -54,6 +54,7 @@
 
       <!-- Hochladedatum -->
       <p id="player-date" class="player-date"></p>
+      <p id="player-status" class="player-status" hidden></p>
 
       <!-- Spalte für ein bisschen Text -->
       <div id="player-text" class="player-text"></div>
