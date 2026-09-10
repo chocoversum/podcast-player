@@ -19,5 +19,17 @@
       "mimeType": "audio/wav",
       "audioTitle": "WAV"
     }
+ {
+      "title": "Folge 1: Schokolade Verkosten",
+      "subtitle": "Wie wird Schokolade richtig verkostet?",
+      "summary": "<p>Vivi und Ella sind zu Gast und verkosten mit Clara 2 Produkte aus unserem Shop. Es wird darüber geredet wie Schokolade richtig verkostet wird, denn ja, es gibt Regeln beim Verkosten von Schokolade und ihr lernt die drei nochmal etwas besser kennen.</p>",
+      "publicationDate": "2026-04-12T12:00:00+00:00",
+      "duration": "00:46:42",
+      "poster": "images/cover.jpg",
+      "link": "",
+      "audioUrl": "audio/folge_1_Schokolade_Verkosten.wav",
+      "mimeType": "audio/wav",
+      "audioTitle": "WAV"
+    }
   ]
 }
