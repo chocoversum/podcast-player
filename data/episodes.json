@@ -27,9 +27,9 @@
       "duration": "00:46:42",
       "poster": "images/cover.jpg",
       "link": "",
-      "audioUrl": "audio/folge_1_schokolade_verkosten.wav",
-      "mimeType": "audio/wav",
-      "audioTitle": "WAV"
+      "audioUrl": "audio/folge_1_schokolade_verkosten.mp3",
+      "mimeType": "audio/mpeg",
+      "audioTitle": "MP3"
       }
   ]
 }
