@@ -50,6 +50,17 @@
       "audioUrl": "audio/kontorhausviertel_und_kontor_kollektiv_.mp3",
       "mimeType": "audio/mpeg",
       "audioTitle": "MP3"
+      },
+{
+      "title": "Bessere Arbeitsbedingungen in der Kakaoindustrie",
+      "subtitle": "Was tun Hersteller konkret, damit es in der Kakaoindustie besser zugeht?.",
+      "summary": "<p>Clara und Hannah schauen sich drei Unternehmen an: Tony's Chocolonely, Original Beans und Fairafric.</p>",
+      "duration": "00:39:40",
+      "poster": "images/cover.jpg",
+      "link": "",
+      "audioUrl": "audio/bessere_arbeitsbedingungen_.mp3",
+      "mimeType": "audio/mpeg",
+      "audioTitle": "MP3"
       }
   ]
 }
