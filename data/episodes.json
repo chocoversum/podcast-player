@@ -39,6 +39,17 @@
       "audioUrl": "audio/unser_weg_zum_neuen_ticketingsystem_.mp3",
       "mimeType": "audio/mpeg",
       "audioTitle": "MP3"
+      },
+{
+      "title": "Kontorhausviertel und Kontor Kollektiv",
+      "subtitle": "Backsteinrot, Kontor und das Chocoversum.",
+      "summary": "<p> Tori nimmt uns mit ins Kontorhausviertel. Was gehört alles dazu? Was ist das Kontor Kollektiv, wie ist es entstanden und welche Rolle spielen wir dabei?</p>",
+      "duration": "00:26:49",
+      "poster": "images/cover.jpg",
+      "link": "",
+      "audioUrl": "audio/kontorhausviertel_und_kontor_kollektiv_.mp3",
+      "mimeType": "audio/mpeg",
+      "audioTitle": "MP3"
       }
   ]
 }
